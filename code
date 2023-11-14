@@ -1,0 +1,82 @@
+# Import necessary libraries
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import matplotlib.pyplot as plt
+
+
+df = pd.read_csv('/content/used_car_dataset.csv')
+# Data cleaning
+#df['car_price_in_rupees'] = df['car_price_in_rupees'].str.replace('₹', '').str.replace(' Lakh', '').str.replace(',', '').astype(float)
+df['car_price_in_rupees'] = df['car_price_in_rupees'].str.replace('₹', '').str.replace(' Lakh', '').str.replace(' Crore', 'e7').str.replace(',', '').astype(float)
+df['kms_driven'] = df['kms_driven'].str.replace(' km', '').str.replace(',', '').astype(float)
+
+# Feature engineering
+current_year = 2023  # You can replace this with the actual current year
+df['car_age'] = current_year - df['year_of_manufacture']
+
+# Model selection
+X = df[['kms_driven', 'year_of_manufacture', 'car_age']]
+y = df['car_price_in_rupees']
+
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Model training
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Model assessment
+y_pred = model.predict(X_test)
+
+# Performance metrics
+mae = mean_absolute_error(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+# Model evaluation
+print(f'Mean Absolute Error: {mae}')
+print(f'Mean Squared Error: {mse}')
+print(f'R-squared: {r2}')
+
+# Visualization
+plt.scatter(X_test['kms_driven'], y_test, color='black', label='Actual Prices')
+plt.scatter(X_test['kms_driven'], y_pred, color='blue', label='Predicted Prices')
+plt.xlabel('Kilometers Driven')
+plt.ylabel('Car Price (in Lakhs)')
+plt.title('Actual vs Predicted Car Prices')
+plt.legend()
+plt.show()
+
+
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Visualization of Actual vs Predicted Prices
+plt.scatter(y_test, y_pred)
+plt.xlabel('Actual Prices (in Lakhs)')
+plt.ylabel('Predicted Prices (in Lakhs)')
+plt.title('Actual vs Predicted Car Prices')
+plt.show()
+
+# Performance metrics
+mae = mean_absolute_error(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+# Model evaluation
+print(f'Mean Absolute Error: {mae}')
+print(f'Mean Squared Error: {mse}')
+print(f'R-squared: {r2}')
+
+# Visualization of Residuals
+residuals = y_test - y_pred
+sns.scatterplot(x=y_test, y=residuals)
+plt.axhline(y=0, color='r', linestyle='--')
+plt.xlabel('Actual Prices (in Lakhs)')
+plt.ylabel('Residuals (Actual - Predicted)')
+plt.title('Residual Plot')
+plt.show()
